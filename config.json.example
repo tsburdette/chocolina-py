@@ -1,0 +1,6 @@
+{
+	"discord_client_id" : "put your discord id here",
+	"discord_token" : "put your discord token here",
+	"command_prefix" : "!",
+	"description" : "I'm the super time-traveling salesgirl!"
+}
