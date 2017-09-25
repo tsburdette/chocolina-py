@@ -7,13 +7,24 @@ import logging
 from pybooru import Danbooru
 import urllib.request
 
+initial_extensions = [ 'butts', 'danbooru' ]
+
 with open('config.json') as config_file:
     config = json.load(config_file)
 discord_token = config['discord_token']
 bot = commands.Bot(command_prefix=config['command_prefix'], description=config['description'])
-danbooru_client = Danbooru('danbooru')
 
 log = logging.getLogger(__name__)
+
+@bot.command()
+async def load(extension_name : str):
+    """Loads an extension"""
+    try:
+        bot.load_extension(extension_name)
+    except (AttributeError, ImportError) as e:
+        await bot.say("```py\n{}: {}\n```".format(type(e).__name__, str(e)))
+        return
+    await bot.say("{} loaded.".format(extension_name))
 
 @bot.event
 async def on_ready():
@@ -32,10 +43,6 @@ async def on_message(message):
         await bot.send_file(message.channel, 'images/chocobocolina.gif')
     await bot.process_commands(message)
 
-@bot.command()
-async def butts():
-    await bot.say('Butts are great!')
-
 @bot.group(pass_context=True)
 async def role(ctx):
     if ctx.invoked_subcommand is None:
@@ -50,11 +57,15 @@ async def list(member : discord.Member):
 async def add(ctx, *, role : str):
     safe_roles = [
         "battle bunnies",
-        "camp counselors"
+        "camp counselors",
+        "potluckers",
+        "puhbuhguh when",
+        "ksr soldiers"
         ]
     server_role_list = ctx.message.server.roles[1:]
     server_role_names = [role.name.lower() for role in server_role_list]
     mapping = dict(zip(server_role_names, server_role_list))
+    print(role.lower())
     await bot.say('Attempting to add {0} to role: {1}'.format(ctx.message.author, role))
     if role.lower() in safe_roles:
         if role.lower() in server_role_names:
@@ -72,7 +83,10 @@ async def add(ctx, *, role : str):
 async def remove(ctx, *, role : str):
     safe_roles = [
         "battle bunnies",
-        "camp counselors"
+        "camp counselors",
+        "potluckers",
+        "puhbuhguh when",
+        "ksr soldiers"
         ]
     user_role_list = ctx.message.author.roles[1:]
     user_role_names = [role.name.lower() for role in user_role_list]
@@ -90,16 +104,13 @@ async def remove(ctx, *, role : str):
     else:
         await bot.say('That role is beyond my simple powers. Sorry!')
 
-@bot.command()
-async def react(*tags : str):
-    if len(tags)==0:
-        tags = ('trap',)
-    print('Seeking image for ' + ' '.join(tags))
-    try:
-        posts = danbooru_client.post_list(tags=' '.join(tags), random=True, limit=1)
-        url = 'https://danbooru.donmai.us' + posts[0]['file_url']
-        await bot.say(url)
-    except:
-        await bot.say('Sorry. I couldn\'t find any images using these tags: ' + ' '.join(tags))
 
-bot.run(discord_token)
+if __name__ == "__main__":
+    for extension in initial_extensions:
+        try:
+            bot.load_extension(extension)
+        except Exception as e:
+            exc = '{} : {}'.format(type(e).__name__, e)
+            print('Failed to load extension {}\n{}'.format(extension, exc))
+
+    bot.run(discord_token)
